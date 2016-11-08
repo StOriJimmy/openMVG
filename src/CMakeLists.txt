@@ -37,6 +37,8 @@ OPTION(OpenMVG_USE_OPENCV "Build or not opencv+openMVG samples programs" OFF)
 # ==============================================================================
 OPTION(OpenMVG_USE_OCVSIFT "Add or not OpenCV SIFT in available features" OFF)
 
+OPTION(OpenMVG_USE_QT "Build or not qt+openMVG ui programs" OFF)
+
 # ==============================================================================
 # OpenMVG version
 # ==============================================================================
