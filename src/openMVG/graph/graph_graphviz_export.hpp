@@ -162,15 +162,9 @@ void exportToGraphvizData(const std::string& sfile, const GraphT & graph){
   file.close();
 
   //Use Graphviz
-#ifdef _DEBUG
-  const std::string cmd = "\"" "C:/Program Files (x86)/Graphviz2.38/bin/neato.exe" "\" -Tsvg -O -Goverlap=scale -Gsplines=false " + sfile;
-  int ret = std::system(cmd.c_str());
-  (void)ret;
-#else
   const std::string cmd = "neato -Tsvg -O -Goverlap=scale -Gsplines=false " + sfile;
   int ret = std::system(cmd.c_str());
   (void)ret;
-#endif // _DEBUG  
 }
 
 } // namespace graph
