@@ -7,7 +7,7 @@
 #pragma once
 
 // Qt4 headers
-#include <QtWidgets>
+#include <QMainWindow>
 #include <QPointer>
 
 #include "document.hpp"

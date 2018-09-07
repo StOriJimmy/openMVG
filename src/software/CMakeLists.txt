@@ -8,14 +8,7 @@ ENDIF (OpenMVG_BUILD_OPENGL_EXAMPLES)
 
 ADD_SUBDIRECTORY(colorHarmonize)
 
-if (OpenMVG_USE_QT)
-set(UI_QT_COMPONENTS Core Gui Widgets)
-set(QT_FOUND true)
-find_package(Qt5 REQUIRED ${UI_QT_COMPONENTS})
-endif (OpenMVG_USE_QT)
-
+find_package(Qt4 QUIET)
 if (QT_FOUND)
 ADD_SUBDIRECTORY(ui)
-else (QT_FOUND)
-message("skip ui for qt not found")
 endif (QT_FOUND)
