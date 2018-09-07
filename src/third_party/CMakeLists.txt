@@ -2,113 +2,106 @@
 #Third party libraries
 #---------------------
 
-# libs should be static
-SET(BUILD_SHARED_LIBS OFF)
-
-# use PIC code for link into shared lib
-IF(UNIX)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-ENDIF(UNIX)
+if (MSVC)
+  # Disable warning about size_t conversions for all third_party libraries.
+  add_compile_options(/wd4267)
+endif()
 
 # Unit test library
-IF (OpenMVG_BUILD_TESTS)
-  ADD_SUBDIRECTORY(CppUnitLite)
-ENDIF()
+if (OpenMVG_BUILD_TESTS)
+  add_subdirectory(CppUnitLite)
+endif()
 
 # Basic filesystem utils
-SET(STLPLUS_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/stlplus3)
-ADD_SUBDIRECTORY(stlplus3)
+set(STLPLUS_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/stlplus3)
+add_subdirectory(stlplus3)
+set(STLPLUS_LIBRARY openMVG_stlplus PARENT_SCOPE)
 
 # Add graph library
-IF(DEFINED OpenMVG_USE_INTERNAL_LEMON)
-  ADD_SUBDIRECTORY(lemon)
-  SET_PROPERTY(TARGET lemon PROPERTY FOLDER OpenMVG/3rdParty/lemon)
-  SET_PROPERTY(TARGET check PROPERTY FOLDER OpenMVG/3rdParty/lemon)
-ENDIF()
+if(DEFINED OpenMVG_USE_INTERNAL_LEMON)
+  add_subdirectory(lemon)
+  set_property(TARGET openMVG_lemon PROPERTY FOLDER OpenMVG/3rdParty/lemon)
+  set_property(TARGET check PROPERTY FOLDER OpenMVG/3rdParty/lemon)
+endif()
 
 ##
 # Image I/O
 ##
-IF(NOT JPEG_FOUND)
-  SET(OpenMVG_USE_INTERNAL_JPEG ON PARENT_SCOPE)
-  SET(JPEG_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/jpeg)
-  ADD_SUBDIRECTORY(jpeg)
-  LIST(APPEND JPEG_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/jpeg ${CMAKE_CURRENT_BINARY_DIR}/jpeg/config)
-  SET(JPEG_INCLUDE_DIR ${JPEG_INCLUDE_DIRECTORIES})
-  SET(JPEG_LIBRARIES jpeg PARENT_SCOPE)
-  SET(JPEG_INCLUDE_DIR ${JPEG_INCLUDE_DIR} PARENT_SCOPE)
-ENDIF(NOT JPEG_FOUND)
+if(NOT JPEG_FOUND)
+  set(OpenMVG_USE_INTERNAL_JPEG ON PARENT_SCOPE)
+  add_subdirectory(jpeg)
+  list(APPEND JPEG_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/jpeg ${CMAKE_CURRENT_BINARY_DIR}/jpeg/config)
+  set(JPEG_INCLUDE_DIR ${JPEG_INCLUDE_DIRECTORIES})
+  set(JPEG_LIBRARIES openMVG_jpeg PARENT_SCOPE)
+  set(JPEG_INCLUDE_DIR ${JPEG_INCLUDE_DIR} PARENT_SCOPE)
+endif(NOT JPEG_FOUND)
 
 # TIFF and PNG depend on zlib, if one of them is not found add the internal zlib
-IF(NOT PNG_FOUND OR NOT TIFF_FOUND)
-  ADD_SUBDIRECTORY(zlib)
-ENDIF(NOT PNG_FOUND OR NOT TIFF_FOUND)
+if(NOT PNG_FOUND OR NOT TIFF_FOUND)
+  add_subdirectory(zlib)
+endif(NOT PNG_FOUND OR NOT TIFF_FOUND)
 
-IF (NOT PNG_FOUND)
-  SET(OpenMVG_USE_INTERNAL_PNG ON PARENT_SCOPE)
-  SET(ZLIB_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/zlib)
-  SET(PNG_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/png)
-  ADD_SUBDIRECTORY(png)
-  SET(PNG_LIBRARIES png zlib)
-  LIST(APPEND PNG_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/png ${CMAKE_CURRENT_SOURCE_DIR}/zlib ${CMAKE_CURRENT_BINARY_DIR}/png/config)
-  SET(PNG_INCLUDE_DIRS ${PNG_INCLUDE_DIRECTORIES})
-  SET(PNG_LIBRARIES ${PNG_LIBRARIES} PARENT_SCOPE)
-  SET(PNG_INCLUDE_DIRS ${PNG_INCLUDE_DIRS} PARENT_SCOPE)
-ENDIF (NOT PNG_FOUND)
+if (NOT PNG_FOUND)
+  set(OpenMVG_USE_INTERNAL_PNG ON PARENT_SCOPE)
+  add_subdirectory(png)
+  set(PNG_LIBRARIES openMVG_png openMVG_zlib)
+  list(APPEND PNG_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/png ${CMAKE_CURRENT_SOURCE_DIR}/zlib ${CMAKE_CURRENT_BINARY_DIR}/png/config)
+  set(PNG_INCLUDE_DIRS ${PNG_INCLUDE_DIRECTORIES})
+  set(PNG_LIBRARIES ${PNG_LIBRARIES} PARENT_SCOPE)
+  set(PNG_INCLUDE_DIRS ${PNG_INCLUDE_DIRS} PARENT_SCOPE)
+endif (NOT PNG_FOUND)
 
-IF (NOT TIFF_FOUND)
-  SET(OpenMVG_USE_INTERNAL_TIFF ON PARENT_SCOPE)
-  SET(TIFF_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/tiff)
-  ADD_SUBDIRECTORY(tiff)
-  LIST(APPEND TIFF_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/tiff ${CMAKE_CURRENT_BINARY_DIR}/tiff)  
-  SET(TIFF_INCLUDE_DIR ${TIFF_INCLUDE_DIRECTORIES})
-  SET(TIFF_LIBRARIES tiff)
-  SET(TIFF_LIBRARIES ${TIFF_LIBRARIES} PARENT_SCOPE)
-  SET(TIFF_INCLUDE_DIR ${TIFF_INCLUDE_DIR} PARENT_SCOPE)
-ENDIF (NOT TIFF_FOUND)
+if (NOT TIFF_FOUND)
+  set(OpenMVG_USE_INTERNAL_TIFF ON PARENT_SCOPE)
+  add_subdirectory(tiff)
+  list(APPEND TIFF_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/tiff ${CMAKE_CURRENT_BINARY_DIR}/tiff)
+  set(TIFF_INCLUDE_DIR ${TIFF_INCLUDE_DIRECTORIES})
+  set(TIFF_LIBRARIES openMVG_tiff)
+  set(TIFF_LIBRARIES ${TIFF_LIBRARIES} PARENT_SCOPE)
+  set(TIFF_INCLUDE_DIR ${TIFF_INCLUDE_DIR} PARENT_SCOPE)
+endif (NOT TIFF_FOUND)
 ##
 # End - Image I/O
 ##
 
 # Add svg library
-ADD_SUBDIRECTORY(vectorGraphics)
+add_subdirectory(vectorGraphics)
 
 # Add ceres-solver (A Nonlinear Least Squares Minimizer)
-IF (DEFINED OpenMVG_USE_INTERNAL_CERES)
-  SET(CXSPARSE_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/cxsparse)
-  ADD_SUBDIRECTORY(cxsparse)
-  SET(CERES_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/ceres)
-  ADD_SUBDIRECTORY(ceres-solver)
-  SET_PROPERTY(TARGET cxsparse PROPERTY FOLDER OpenMVG/3rdParty/ceres)
-  SET_PROPERTY(TARGET ceres PROPERTY FOLDER OpenMVG/3rdParty/ceres)
-ENDIF()
+if (DEFINED OpenMVG_USE_INTERNAL_CERES)
+  add_subdirectory(cxsparse)
+  add_subdirectory(ceres-solver)
+  set_property(TARGET openMVG_cxsparse PROPERTY FOLDER OpenMVG/3rdParty/ceres)
+  set_property(TARGET openMVG_ceres PROPERTY FOLDER OpenMVG/3rdParty/ceres)
+endif()
 
 # Add an Approximate Nearest Neighbor library
-IF (DEFINED OpenMVG_USE_INTERNAL_FLANN)
-  SET(FLANN_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/flann/src/cpp)
-  ADD_SUBDIRECTORY(flann)
-  SET_PROPERTY(TARGET flann_cpp_s PROPERTY FOLDER OpenMVG/3rdParty)
-ENDIF()
+if (DEFINED OpenMVG_USE_INTERNAL_FLANN)
+  set(FLANN_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/flann/src/cpp)
+  add_subdirectory(flann)
+endif()
 
 # Exif data parsing
-SET(EASYEXIF_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/easyexif)
-ADD_SUBDIRECTORY(easyexif)
+add_subdirectory(easyexif)
+
+# Fast corner detector
+add_subdirectory(fast)
 
 ##
 # Install Header only libraries if necessary
-## 
-IF (DEFINED OpenMVG_USE_INTERNAL_EIGEN)
+##
+if (DEFINED OpenMVG_USE_INTERNAL_EIGEN)
   #Configure Eigen install
-  SET(EIGEN_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/eigen)
-  ADD_SUBDIRECTORY(eigen)
-ENDIF()
+  set(EIGEN_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/openMVG/third_party/eigen)
+  add_subdirectory(eigen)
+endif()
 
-LIST(APPEND directories cmdLine histogram htmlDoc progress tinythread vectorGraphics)
-FOREACH(inDirectory ${directories}) 
-INSTALL(
+list(APPEND directories cmdLine histogram htmlDoc progress vectorGraphics)
+foreach(inDirectory ${directories})
+install(
   DIRECTORY ./${inDirectory}
   DESTINATION include/openMVG/third_party/
   COMPONENT headers
   FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
 )
-ENDFOREACH(inDirectory)
+endforeach(inDirectory)

@@ -1,7 +1,5 @@
 
-ADD_DEFINITIONS(-DTHIS_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-
-ADD_EXECUTABLE(openMVG_main_exif_Parsing exifParsing.cpp)
-TARGET_LINK_LIBRARIES(openMVG_main_exif_Parsing easyexif)
-
-SET_PROPERTY(TARGET openMVG_main_exif_Parsing PROPERTY FOLDER OpenMVG/Samples)
+add_executable(openMVG_main_exif_Parsing exifParsing.cpp)
+target_include_directories(openMVG_main_exif_Parsing PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(openMVG_main_exif_Parsing PRIVATE openMVG_exif)
+set_property(TARGET openMVG_main_exif_Parsing PROPERTY FOLDER OpenMVG/Samples)

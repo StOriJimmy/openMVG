@@ -1,5 +1,4 @@
-// This is an adaptation of the Fisheye distortion model implemented in OpenCV
-// https://github.com/Itseez/opencv/blob/master/modules/calib3d/src/fisheye.cpp
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
 
 // Copyright (c) 2015 Romain Janvier <romain.janvier~AT~univ-orleans.fr> for the given adaptation
 
@@ -7,14 +6,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENMVG_CAMERA_PINHOLE_FISHEYE_HPP
-#define OPENMVG_CAMERA_PINHOLE_FISHEYE_HPP
+// This is an adaptation of the Fisheye distortion model implemented in OpenCV
+// https://github.com/Itseez/opencv/blob/master/modules/calib3d/src/fisheye.cpp
 
-#include "openMVG/numeric/numeric.h"
-#include "openMVG/cameras/Camera_Common.hpp"
-#include "openMVG/cameras/Camera_Pinhole.hpp"
+#ifndef OPENMVG_CAMERAS_CAMERA_PINHOLE_FISHEYE_HPP
+#define OPENMVG_CAMERAS_CAMERA_PINHOLE_FISHEYE_HPP
 
 #include <vector>
+
+#include "openMVG/cameras/Camera_Common.hpp"
+#include "openMVG/cameras/Camera_Pinhole.hpp"
 
 namespace openMVG
 {
@@ -26,7 +27,7 @@ namespace cameras
 */
 class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
 {
-  typedef Pinhole_Intrinsic_Fisheye class_type;
+  using class_type = Pinhole_Intrinsic_Fisheye;
 
   protected:
 
@@ -52,11 +53,11 @@ class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
       int w = 0, int h = 0,
       double focal = 0.0, double ppx = 0, double ppy = 0,
       double k1 = 0.0, double k2 = 0.0, double k3 = 0.0, double k4 = 0.0 )
-      : Pinhole_Intrinsic( w, h, focal, ppx, ppy )
+      : Pinhole_Intrinsic( w, h, focal, ppx, ppy ),
+        params_({k1, k2, k3, k4})
     {
-      params_ = {k1, k2, k3, k4};
     }
-    
+
     ~Pinhole_Intrinsic_Fisheye() override = default;
 
     /**
@@ -86,17 +87,17 @@ class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
     {
       const double eps = 1e-8;
       const double k1 = params_[0], k2 = params_[1], k3 = params_[2], k4 = params_[3];
-      const double r = std::sqrt( p( 0 ) * p( 0 ) + p( 1 ) * p( 1 ) );
+      const double r = std::hypot( p(0), p(1) );
       const double theta = std::atan( r );
       const double
-      theta2 = theta * theta,
-      theta3 = theta2 * theta,
-      theta4 = theta2 * theta2,
-      theta5 = theta4 * theta,
-      theta6 = theta3 * theta3,
-      theta7 = theta6 * theta,
-      theta8 = theta4 * theta4,
-      theta9 = theta8 * theta;
+        theta2 = theta * theta,
+        theta3 = theta2 * theta,
+        theta4 = theta2 * theta2,
+        theta5 = theta4 * theta,
+        theta6 = theta3 * theta3,
+        theta7 = theta6 * theta,
+        theta8 = theta4 * theta4,
+        theta9 = theta8 * theta;
       const double theta_dist = theta + k1 * theta3 + k2 * theta5 + k3 * theta7 + k4 * theta9;
       const double inv_r = r > eps ? 1.0 / r : 1.0;
       const double cdist = r > eps ? theta_dist * inv_r : 1.0;
@@ -112,7 +113,7 @@ class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
     {
       const double eps = 1e-8;
       double scale = 1.0;
-      const double theta_dist = std::sqrt( p[0] * p[0] + p[1] * p[1] );
+      const double theta_dist = std::hypot( p(0), p(1) );
       if ( theta_dist > eps )
       {
         double theta = theta_dist;
@@ -141,10 +142,7 @@ class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
     std::vector<double> getParams() const override
     {
       std::vector<double> params = Pinhole_Intrinsic::getParams();
-      params.push_back( params_[0] );
-      params.push_back( params_[1] );
-      params.push_back( params_[2] );
-      params.push_back( params_[3] );
+      params.insert(params.end(), std::begin(params_), std::end(params_));
       return params;
     }
 
@@ -183,21 +181,17 @@ class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
       if ( !(param & (int)Intrinsic_Parameter_Type::ADJUST_FOCAL_LENGTH)
           || param & (int)Intrinsic_Parameter_Type::NONE )
       {
-        constant_index.push_back(0);
+        constant_index.insert(constant_index.end(), 0);
       }
       if ( !(param & (int)Intrinsic_Parameter_Type::ADJUST_PRINCIPAL_POINT)
           || param & (int)Intrinsic_Parameter_Type::NONE )
       {
-        constant_index.push_back(1);
-        constant_index.push_back(2);
+        constant_index.insert(constant_index.end(), {1, 2});
       }
       if ( !(param & (int)Intrinsic_Parameter_Type::ADJUST_DISTORTION)
           || param & (int)Intrinsic_Parameter_Type::NONE )
       {
-        constant_index.push_back(3);
-        constant_index.push_back(4);
-        constant_index.push_back(5);
-        constant_index.push_back(6);
+        constant_index.insert(constant_index.end(), {3, 4, 5, 6});
       }
       return constant_index;
     }
@@ -227,22 +221,14 @@ class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
     * @param ar Archive
     */
     template <class Archive>
-    void save( Archive & ar ) const
-    {
-      Pinhole_Intrinsic::save( ar );
-      ar( cereal::make_nvp( "fisheye", params_ ) );
-    }
+    inline void save( Archive & ar ) const;
 
     /**
     * @brief  Serialization in
     * @param ar Archive
     */
     template <class Archive>
-    void load( Archive & ar )
-    {
-      Pinhole_Intrinsic::load( ar );
-      ar( cereal::make_nvp( "fisheye", params_ ) );
-    }
+    inline void load( Archive & ar );
 
     /**
     * @brief Clone the object
@@ -258,9 +244,4 @@ class Pinhole_Intrinsic_Fisheye : public Pinhole_Intrinsic
 } // namespace cameras
 } // namespace openMVG
 
-#include <cereal/types/polymorphic.hpp>
-#include <cereal/types/vector.hpp>
-
-CEREAL_REGISTER_TYPE_WITH_NAME( openMVG::cameras::Pinhole_Intrinsic_Fisheye, "fisheye" );
-
-#endif // #ifndef OPENMVG_CAMERA_PINHOLE_FISHEYE_HPP
+#endif // #ifndef OPENMVG_CAMERAS_CAMERA_PINHOLE_FISHEYE_HPP

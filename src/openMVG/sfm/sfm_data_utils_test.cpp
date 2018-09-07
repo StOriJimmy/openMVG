@@ -1,3 +1,4 @@
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
 
 // Copyright (c) 2015 Pierre MOULON.
 
@@ -6,6 +7,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "openMVG/sfm/sfm.hpp"
+
 #include "testing/testing.h"
 #include "third_party/stlplus3/filesystemSimplified/file_system.hpp"
 
@@ -81,7 +83,7 @@ TEST(SfM_Data_IntrinsicGrouping, Grouping_Two)
   CHECK_EQUAL(4, sfm_data.intrinsics.size());
   GroupSharedIntrinsics(sfm_data);
   // Sort view Id from their intrinsic id to check that two view are in each intrinsic group
-  std::map<IndexT, std::set<IndexT> > map_viewCount_per_intrinsic_id;
+  std::map<IndexT, std::set<IndexT>> map_viewCount_per_intrinsic_id;
   for (const auto & val : sfm_data.GetViews())
   {
     map_viewCount_per_intrinsic_id[val.second->id_intrinsic].insert(val.second->id_view);
@@ -118,7 +120,7 @@ TEST(SfM_Data_IntrinsicGrouping, Grouping_Two_Different_Camera_Type)
   GroupSharedIntrinsics(sfm_data);
   CHECK_EQUAL(2, sfm_data.intrinsics.size());
   // Sort view Id from their intrinsic id to check that two view are in each intrinsic group
-  std::map<IndexT, std::set<IndexT> > map_viewCount_per_intrinsic_id;
+  std::map<IndexT, std::set<IndexT>> map_viewCount_per_intrinsic_id;
   for (const auto & val : sfm_data.GetViews())
   {
     map_viewCount_per_intrinsic_id[val.second->id_intrinsic].insert(val.second->id_view);

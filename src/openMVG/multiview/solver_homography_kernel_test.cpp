@@ -19,6 +19,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
 
 // Copyright (c) 2012, 2013 Pierre MOULON.
 
@@ -26,9 +27,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <vector>
 #include "openMVG/multiview/solver_homography_kernel.hpp"
+
 #include "testing/testing.h"
+
+#include <vector>
 
 using namespace std;
 using namespace openMVG;
@@ -38,7 +41,7 @@ TEST(HomographyKernelTest, Fitting_Unnormalized) {
   vector<Mat3> H_gt(3);
 
   H_gt[0] = Mat3::Identity();
-  H_gt[1] << 1,  0, -4,
+  H_gt[1] << 1,  0, -4, // Affine homography motion
              0,  1,  5,
              0,  0,  1;
   H_gt[2] << 1, -2,  3,
@@ -46,21 +49,23 @@ TEST(HomographyKernelTest, Fitting_Unnormalized) {
             -7,  8,  1;
 
   // Define a set of points.
-  Mat x(2, 9), xh;
+  Mat x(2, 9);
   x << 0, 0, 0, 1, 1, 1, 2, 2, 2,
        0, 1, 2, 0, 1, 2, 0, 1, 2;
-  EuclideanToHomogeneous(x, &xh);
+  const Mat xh = x.colwise().homogeneous();
 
-  for (int i = 0; i < H_gt.size(); ++i) {
+  for (size_t i = 0; i < H_gt.size(); ++i) {
     // Transform points by the ground truth homography.
-    Mat y, yh = H_gt[i] * xh;
-    HomogeneousToEuclidean(yh, &y);
+    const Mat y = (H_gt[i] * xh).colwise().hnormalized();
 
     homography::kernel::UnnormalizedKernel kernel(x, y);
 
-    size_t samples_[5]={0,1,2,3,4};
-    vector<size_t> samples(samples_,samples_+5);
-    for (size_t j = 4; samples.size() < x.cols(); samples.push_back(j++)) {
+    vector<uint32_t> samples = {0,1,2,3,4};
+    for (
+      Mat::Index j = 4;
+      static_cast<Mat::Index>(samples.size()) < x.cols();
+      samples.push_back(j++))
+    {
       vector<Mat3> Hs;
       kernel.Fit(samples, &Hs);
       CHECK_EQUAL(1, Hs.size());
@@ -75,7 +80,7 @@ TEST(HomographyKernelTest, Fitting_Normalized) {
   vector<Mat3> H_gt(3);
 
   H_gt[0] = Mat3::Identity();
-  H_gt[1] << 1,  0, -4,
+  H_gt[1] << 1,  0, -4, // Affine homography motion
              0,  1,  5,
              0,  0,  1;
   H_gt[2] << 1, -2,  3,
@@ -83,21 +88,23 @@ TEST(HomographyKernelTest, Fitting_Normalized) {
             -7,  8,  1;
 
   // Define a set of points.
-  Mat x(2, 9), xh;
+  Mat x(2, 9);
   x << 0, 0, 0, 1, 1, 1, 2, 2, 2,
        0, 1, 2, 0, 1, 2, 0, 1, 2;
-  EuclideanToHomogeneous(x, &xh);
+  const Mat xh = x.colwise().homogeneous();
 
-  for (int i = 0; i < H_gt.size(); ++i) {
+  for (size_t i = 0; i < H_gt.size(); ++i) {
     // Transform points by the ground truth homography.
-    Mat y, yh = H_gt[i] * xh;
-    HomogeneousToEuclidean(yh, &y);
+    const Mat y = (H_gt[i] * xh).colwise().hnormalized();
 
     homography::kernel::Kernel kernel(x, y);
 
-    size_t samples_[5]={0,1,2,3,4};
-    vector<size_t> samples(samples_,samples_+5);
-    for (size_t j = 4; samples.size() < x.cols(); samples.push_back(j++)) {
+    vector<uint32_t> samples = {0,1,2,3,4};
+    for (
+      Mat::Index j = 4;
+      static_cast<Mat::Index>(samples.size()) < x.cols();
+      samples.push_back(j++))
+    {
       vector<Mat3> Hs;
       kernel.Fit(samples, &Hs);
       CHECK_EQUAL(1, Hs.size());

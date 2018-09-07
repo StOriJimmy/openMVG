@@ -1,3 +1,5 @@
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
+
 // Copyright (c) 2014 Pierre MOULON.
 
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -7,6 +9,7 @@
 #include "openMVG/multiview/translation_averaging_common.hpp"
 #include "openMVG/multiview/translation_averaging_solver.hpp"
 #include "openMVG/multiview/translation_averaging_test.hpp"
+
 #include "testing/testing.h"
 
 #include <fstream>
@@ -115,7 +118,7 @@ TEST(translation_averaging, globalTi_from_tijs_softl1_Ceres) {
   }
 }
 
-TEST(translation_averaging, globalTi_from_tijs_Triplets_l2_chordal) {
+TEST(translation_averaging, globalTi_from_tijs_l2_chordal) {
 
   const int focal = 1000;
   const int principal_Point = 500;
@@ -124,7 +127,7 @@ TEST(translation_averaging, globalTi_from_tijs_Triplets_l2_chordal) {
   const int iNbPoints = 6;
 
   const bool bCardiod = true;
-  const bool bRelative_Translation_PerTriplet = true;
+  const bool bRelative_Translation_PerTriplet = false;
   std::vector<openMVG::RelativeInfo_Vec > vec_relative_estimates;
 
   const NViewDataSet d =
@@ -154,10 +157,8 @@ TEST(translation_averaging, globalTi_from_tijs_Triplets_l2_chordal) {
       vec_edges.push_back(rel.first.first);
       vec_edges.push_back(rel.first.second);
 
-      const Vec3 EdgeDirection = -(d._R[rel.first.second].transpose() * rel.second.second.normalized());
-      vec_poses.push_back(EdgeDirection(0));
-      vec_poses.push_back(EdgeDirection(1));
-      vec_poses.push_back(EdgeDirection(2));
+      const Vec3 edge_dir = -(d._R[rel.first.second].transpose() * rel.second.second.normalized());
+      vec_poses.insert(vec_poses.end(), {edge_dir(0), edge_dir(1), edge_dir(2)});
 
       vec_weights.push_back(1.0);
     }
@@ -207,4 +208,3 @@ TEST(translation_averaging, globalTi_from_tijs_Triplets_l2_chordal) {
 /* ************************************************************************* */
 int main() { TestResult tr; return TestRegistry::runAllTests(tr);}
 /* ************************************************************************* */
-

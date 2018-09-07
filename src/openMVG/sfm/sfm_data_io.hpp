@@ -1,3 +1,4 @@
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
 
 // Copyright (c) 2015 Pierre MOULON.
 
@@ -6,21 +7,26 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-#ifndef OPENMVG_SFM_DATA_IO_HPP
-#define OPENMVG_SFM_DATA_IO_HPP
+#ifndef OPENMVG_SFM_SFM_DATA_IO_HPP
+#define OPENMVG_SFM_SFM_DATA_IO_HPP
 
-#include "openMVG/sfm/sfm_data.hpp"
+#include <string>
+
+#include "openMVG/types.hpp"
 
 namespace openMVG {
 namespace sfm {
 
+struct SfM_Data;
+
 enum ESfM_Data
 {
-  VIEWS           = 0x01,
-  EXTRINSICS      = 0x02,
-  INTRINSICS      = 0x04,
-  STRUCTURE       = 0x08,
-  CONTROL_POINTS  = 0x16,
+  // Note: Use power of two values in order to use bitwise operators.
+  VIEWS           =  1,
+  EXTRINSICS      =  2,
+  INTRINSICS      =  4,
+  STRUCTURE       =  8,
+  CONTROL_POINTS  = 16,
   ALL = VIEWS | EXTRINSICS | INTRINSICS | STRUCTURE | CONTROL_POINTS
 };
 
@@ -36,4 +42,4 @@ bool Save(const SfM_Data & sfm_data, const std::string & filename, ESfM_Data fla
 } // namespace sfm
 } // namespace openMVG
 
-#endif // OPENMVG_SFM_DATA_IO_HPP
+#endif // OPENMVG_SFM_SFM_DATA_IO_HPP

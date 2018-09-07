@@ -18,10 +18,10 @@ This program includes works distributed under the terms of another license(s) an
     Copyright (c) Pascal Monasse.
     Licensed under the [MPL2 license](http://opensource.org/licenses/MPL-2.0).
 
-*   __CppUnitLite__ (optionnal)<br />
+*   __CppUnitLite__ (optional)<br />
     Public domain.
 
-*   __cxsparse__  (optionnal)<br />
+*   __cxsparse__  (optional)<br />
     Copyright (c) 2006-2012, Timothy A. Davis.
     Distributed under the [GNU LGPL license](http://opensource.org/licenses/lgpl-license).
 
@@ -33,6 +33,10 @@ This program includes works distributed under the terms of another license(s) an
     Copyright (c) Eigen authors.
     Distributed under the [MPL2 license](http://opensource.org/licenses/MPL-2.0).
     Compiled with EIGEN_MPL2_ONLY to ensure MPL2 compatible code.
+
+*   __fast__<br />
+    Copyright (c) 2006, 2008 Edward Rosten
+    Distributed under the [New BSD License](https://opensource.org/licenses/BSD-3-Clause).
 
 *   __flann__<br />
     Copyright (c) 2008-2011  Marius Muja (mariusm@cs.ubc.ca). All rights reserved.
@@ -55,7 +59,7 @@ This program includes works distributed under the terms of another license(s) an
     Copyright (c) Lemon authors.
     Licensed under the [Boost License 1.0](http://www.boost.org/LICENSE_1_0.txt).
 
-*   __png__ (optionnal)<br />
+*   __png__ (optional)<br />
     Copyright (c) 2004, 2006-2015 Glenn Randers-Pehrson
     Licensed under the [lib png license](http://www.libpng.org/pub/png/src/libpng-LICENSE.txt).
 
@@ -67,21 +71,15 @@ This program includes works distributed under the terms of another license(s) an
     Copyright (c) 1999-2004 Southampton University, 2004 onwards Andy Rushton. All rights reserved.
     Licensed under the [BSD license](http://opensource.org/licenses/bsd-license.php).
 
-*   __tiff__ (optionnal)<br />
+*   __tiff__ (optional)<br />
     Copyright (c) 1988-1997 Sam Leffler
     Copyright (c) 1991-1997 Silicon Graphics, Inc.
     Licensed under a BSD-like license.
-
-*   __tinythread__<br />
-    Copyright (c) 2010-2012 Marcus Geelnard.
-    Licensed under the [zlib/libpng license](http://www.opensource.org/licenses/zlib-license.php).
 
 *   __vectorGraphics__<br />
     Copyright (c) Pierre Moulon
     Licensed under the [MPL2 license](http://opensource.org/licenses/MPL-2.0).
 
-*   __zlib__  (optionnal)<br />
+*   __zlib__  (optional)<br />
     Copyright (C) 1995-2005 Jean-loup Gailly
     Licensed under the [zlib license](http://opensource.org/licenses/Zlib).
-
-

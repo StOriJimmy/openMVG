@@ -1,11 +1,13 @@
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
+
 // Copyright (c) 2014 Pierre MOULON
 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef __TRANS_SOLVER_H__
-#define __TRANS_SOLVER_H__
+#ifndef OPENMVG_MULTIVIEW_TRANSLATION_AVERAGING_SOLVER_HPP
+#define OPENMVG_MULTIVIEW_TRANSLATION_AVERAGING_SOLVER_HPP
 
 #include "openMVG/multiview/translation_averaging_common.hpp"
 
@@ -48,12 +50,12 @@ solve_translations_problem_l2_chordal
 *  All relative motions must be 1 connected component.
 *
 * @param[in] vec_initial_estimates group of relative motion information
-*             Each group will have it's own optimized scale
+*             Each group will have its own optimized scale
 *             Bearing: 2 view estimates => essential matrices)
 *             N-Uplets: N-view estimates => i.e. 3 view estimations means a triplet of relative motion
 
 * @param[out] translations found global camera translations
-* @param[in] d_l1_loss_threshold optionnal threshold for SoftL1 loss (-1: no loss function)
+* @param[in] d_l1_loss_threshold optional threshold for SoftL1 loss (-1: no loss function)
 * @return True if the registration can be solved
 */
 bool
@@ -66,4 +68,4 @@ solve_translations_problem_softl1
 
 } // namespace openMVG
 
-#endif // __TRANS_SOLVER_H__
+#endif // OPENMVG_MULTIVIEW_TRANSLATION_AVERAGING_SOLVER_HPP

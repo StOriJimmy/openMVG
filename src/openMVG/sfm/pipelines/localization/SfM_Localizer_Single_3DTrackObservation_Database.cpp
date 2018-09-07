@@ -1,3 +1,4 @@
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
 
 // Copyright (c) 2015 Pierre MOULON.
 
@@ -6,15 +7,20 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "openMVG/sfm/pipelines/localization/SfM_Localizer_Single_3DTrackObservation_Database.hpp"
+
+#include "openMVG/cameras/Camera_Intrinsics.hpp"
 #include "openMVG/matching/indMatch.hpp"
-#include "openMVG/matching/regions_matcher.hpp"
+#include "openMVG/sfm/pipelines/sfm_regions_provider.hpp"
+#include "openMVG/sfm/sfm_data.hpp"
+
+using namespace openMVG::matching;
 
 namespace openMVG {
 namespace sfm {
 
   SfM_Localization_Single_3DTrackObservation_Database::
   SfM_Localization_Single_3DTrackObservation_Database()
-  :SfM_Localizer(), sfm_data_(nullptr), matching_interface_(nullptr)
+  :SfM_Localizer()
   {}
 
   bool
@@ -24,11 +30,6 @@ namespace sfm {
     const Regions_Provider & regions_provider
   )
   {
-    if (regions_provider.regions_per_view.empty())
-    {
-      return false;
-    }
-
     if (sfm_data.GetPoses().empty() || sfm_data.GetLandmarks().empty())
     {
       std::cerr << std::endl
@@ -41,8 +42,7 @@ namespace sfm {
     // - each view observation leads to a new regions
     // - link each observation region to a track id to ease 2D-3D correspondences search
 
-    const features::Regions * regions_type = std::begin(regions_provider.regions_per_view)->second.get();
-    landmark_observations_descriptors_.reset(regions_type->EmptyClone());
+    landmark_observations_descriptors_.reset(regions_provider.getRegionsType()->EmptyClone());
     for (const auto & landmark : sfm_data.GetLandmarks())
     {
       for (const auto & observation : landmark.second.obs)
@@ -50,7 +50,7 @@ namespace sfm {
         if (observation.second.id_feat != UndefinedIndexT)
         {
           // copy the feature/descriptor to landmark_observations_descriptors
-          const features::Regions * view_regions = regions_provider.regions_per_view.at(observation.first).get();
+          const std::shared_ptr<features::Regions> view_regions = regions_provider.get(observation.first);
           view_regions->CopyRegion(observation.second.id_feat, landmark_observations_descriptors_.get());
           // link this descriptor to the track Id
           index_to_landmark_id_.push_back(landmark.first);
@@ -58,11 +58,15 @@ namespace sfm {
       }
     }
     std::cout << "Init retrieval database ... " << std::endl;
-    matching_interface_.reset(new
-      matching::Matcher_Regions_Database(matching::ANN_L2, *landmark_observations_descriptors_));
-    std::cout << "Retrieval database initialized\n"
-      << "#landmark: " << sfm_data.GetLandmarks().size() << "\n"
-      << "#descriptor initialized: " << landmark_observations_descriptors_->RegionCount() << std::endl;
+    // Initialize the matching interface
+    matching_interface_ =
+      RegionMatcherFactory(matching::ANN_L2, *landmark_observations_descriptors_);
+    if (!matching_interface_)
+      return false;
+
+    std::cout << "Retrieval database initialized with:\n"
+      << "#landmarks: " << sfm_data.GetLandmarks().size() << "\n"
+      << "#descriptors: " << landmark_observations_descriptors_->RegionCount() << std::endl;
 
     sfm_data_ = &sfm_data;
 
@@ -72,6 +76,7 @@ namespace sfm {
   bool
   SfM_Localization_Single_3DTrackObservation_Database::Localize
   (
+    const resection::SolverType & solver_type,
     const Pair & image_size,
     const cameras::IntrinsicBase * optional_intrinsics,
     const features::Regions & query_regions,
@@ -79,13 +84,13 @@ namespace sfm {
     Image_Localizer_Match_Data * resection_data_ptr
   ) const
   {
-    if (sfm_data_ == nullptr || matching_interface_ == nullptr)
+    if (!sfm_data_ || !matching_interface_)
     {
       return false;
     }
 
     matching::IndMatches vec_putative_matches;
-    if (!matching_interface_->Match(0.8, query_regions, vec_putative_matches))
+    if (!matching_interface_->MatchDistanceRatio(0.8, query_regions, vec_putative_matches))
     {
       return false;
     }
@@ -113,11 +118,11 @@ namespace sfm {
     }
 
     const bool bResection =  SfM_Localizer::Localize(
-      image_size, optional_intrinsics, resection_data, pose);
+      solver_type, image_size, optional_intrinsics, resection_data, pose);
 
     resection_data.pt2D = std::move(pt2D_original); // restore original image domain points
 
-    if (resection_data_ptr != nullptr)
+    if (resection_data_ptr)
       (*resection_data_ptr) = std::move(resection_data);
 
     return bResection;

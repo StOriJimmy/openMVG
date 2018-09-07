@@ -1,11 +1,13 @@
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
+
 // Copyright (c) 2013-2015 Pierre MOULON.
 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EXIF_IO_HPP
-#define EXIF_IO_HPP
+#ifndef OPENMVG_EXIF_EXIF_IO_HPP
+#define OPENMVG_EXIF_EXIF_IO_HPP
 
 #include <string>
 
@@ -24,6 +26,7 @@ class Exif_IO
 {
   public:
 
+    virtual ~Exif_IO() = default;
     /**
     * @brief Get image width
     * @return Width of the image (in pixel)
@@ -41,6 +44,34 @@ class Exif_IO
     * @return Focal of the lens when image was shot (in mm)
     */
     virtual float getFocal() const = 0;
+
+    /**
+    * @brief Get FocalLengthIn35mm (in mm)
+    * @return The equivalent focal length assuming a 35mm film camera, in mm.
+    */
+    virtual float getFocalLengthIn35mm() const = 0;
+
+    /**
+    * @brief Get FocalPlaneXResolution
+    * @return Number of pixels in the image width (X) direction per
+    *           FocalPlaneResolutionUnit on the camera focal plane.
+    */
+    virtual float getFocalPlaneXResolution() const = 0;
+
+    /**
+    * @brief Get FocalPlaneYResolution
+    * @return Number of pixels in the image height (Y) direction per
+    *           FocalPlaneResolutionUnit on the camera focal plane.
+    */
+    virtual float getFocalPlaneYResolution() const = 0;
+
+    /**
+    * @brief Get FocalPlaneResolutionUnit
+    *        Unit -> 2: inch, 3: centimeter, 4: millimeter, 5:micrometers.
+    * @return Indicates the unit for measuring FocalPlaneXResolution and
+    *          FocalPlaneYResolution.
+    */
+    virtual int getFocalPlaneResolutionUnit() const = 0;
 
     /**
     * @brief Get Brand of the camera
@@ -61,7 +92,7 @@ class Exif_IO
     virtual std::string getLensModel() const = 0;
 
     /**
-    * @brief Get an unique identifier for this image
+    * @brief Get a unique identifier for this image
     * @return Unique ID
     */
     virtual std::string getImageUniqueID() const = 0;
@@ -87,9 +118,27 @@ class Exif_IO
     */
     virtual std::string allExifData() const = 0;
 
+    /**
+    * @brief Try to read and save the EXIF GPS latitude
+    * @return If GPS Latitude can be read & exported, return true
+    */
+    virtual bool GPSLatitude(double * latitude) const = 0;
+
+    /**
+    * @brief Try to read and save the EXIF GPS longitude
+    * @return If GPS Longitude can be read & exported, return true
+    */
+    virtual bool GPSLongitude(double * longitude) const = 0;
+
+   /**
+    * @brief Try to read and save the EXIF GPS altitude
+    * @return If GPS Altitude can be read & exported, return true
+    */
+    virtual bool GPSAltitude(double * altitude) const = 0;
+
 };
 
 } // namespace exif
 } // namespace openMVG
-#endif //EXIF_IO_HPP
 
+#endif // OPENMVG_EXIF_EXIF_IO_HPP

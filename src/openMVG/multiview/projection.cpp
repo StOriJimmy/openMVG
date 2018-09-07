@@ -1,4 +1,3 @@
-
 // Copyright (c) 2010 libmv authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+// This file is part of OpenMVG, an Open Multiple View Geometry C++ library.
+
 // Copyright (c) 2012, 2013 Pierre MOULON.
 
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -26,6 +27,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "openMVG/multiview/projection.hpp"
+#include "openMVG/numeric/numeric.h"
 
 namespace openMVG {
 
@@ -46,7 +48,7 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   if (K(2,1) != 0) {
     double c = -K(2,2);
     double s = K(2,1);
-    double l = sqrt(c * c + s * s);
+    double l = std::hypot(c, s);
     c /= l; s /= l;
     Mat3 Qx;
     Qx << 1, 0, 0,
@@ -59,7 +61,7 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   if (K(2,0) != 0) {
     double c = K(2,2);
     double s = K(2,0);
-    double l = sqrt(c * c + s * s);
+    double l = std::hypot(c, s);
     c /= l; s /= l;
     Mat3 Qy;
     Qy << c, 0, s,
@@ -72,7 +74,7 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   if (K(1,0) != 0) {
     double c = -K(1,1);
     double s = K(1,0);
-    double l = sqrt(c * c + s * s);
+    double l = std::hypot(c, s);
     c /= l; s /= l;
     Mat3 Qz;
     Qz << c,-s, 0,
@@ -116,7 +118,7 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   Eigen::PartialPivLU<Mat3> lu(K);
   Vec3 t = lu.solve(P.col(3));
 
-  if(R.determinant()<0) {
+  if (R.determinant()<0) {
     R = -R;
     t = -t;
   }
@@ -131,35 +133,33 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
 
 Mat3 F_from_P(const Mat34 & P1, const Mat34 & P2)
 {
-	Mat3 F12;
-		
-	typedef Eigen::Matrix<double, 2, 4> Mat24;
-	Mat24 X1 = P1.block<2, 4>(1, 0);
-	Mat24 X2;  X2 << P1.row(2), P1.row(0);
-	Mat24 X3 = P1.block<2, 4>(0, 0);
-	Mat24 Y1 = P2.block<2, 4>(1, 0);
-	Mat24 Y2;  Y2 << P2.row(2), P2.row(0);
-	Mat24 Y3 = P2.block<2, 4>(0, 0);
+  Mat3 F12;
+
+  using Mat24 = Eigen::Matrix<double, 2, 4>;
+  Mat24 X1 = P1.block<2, 4>(1, 0);
+  Mat24 X2;  X2 << P1.row(2), P1.row(0);
+  Mat24 X3 = P1.block<2, 4>(0, 0);
+  Mat24 Y1 = P2.block<2, 4>(1, 0);
+  Mat24 Y2;  Y2 << P2.row(2), P2.row(0);
+  Mat24 Y3 = P2.block<2, 4>(0, 0);
 
 
-	Mat4 X1Y1, X2Y1, X3Y1, X1Y2, X2Y2, X3Y2, X1Y3, X2Y3, X3Y3;
-	X1Y1 << X1, Y1;  X2Y1 << X2, Y1;  X3Y1 << X3, Y1;
-	X1Y2 << X1, Y2;  X2Y2 << X2, Y2;  X3Y2 << X3, Y2;
-	X1Y3 << X1, Y3;  X2Y3 << X2, Y3;  X3Y3 << X3, Y3;
+  Mat4 X1Y1, X2Y1, X3Y1, X1Y2, X2Y2, X3Y2, X1Y3, X2Y3, X3Y3;
+  X1Y1 << X1, Y1;  X2Y1 << X2, Y1;  X3Y1 << X3, Y1;
+  X1Y2 << X1, Y2;  X2Y2 << X2, Y2;  X3Y2 << X3, Y2;
+  X1Y3 << X1, Y3;  X2Y3 << X2, Y3;  X3Y3 << X3, Y3;
 
 
-	F12 << X1Y1.determinant(), X2Y1.determinant(), X3Y1.determinant(),
-		X1Y2.determinant(), X2Y2.determinant(), X3Y2.determinant(),
-		X1Y3.determinant(), X2Y3.determinant(), X3Y3.determinant();
+  F12 <<
+    X1Y1.determinant(), X2Y1.determinant(), X3Y1.determinant(),
+    X1Y2.determinant(), X2Y2.determinant(), X3Y2.determinant(),
+    X1Y3.determinant(), X2Y3.determinant(), X3Y3.determinant();
 
-	return F12;
+  return F12;
 }
 
 Vec2 Project(const Mat34 &P, const Vec3 &X) {
-  Vec4 HX;
-  HX << X, 1.0;
-  Vec3 hx = P * HX;
-  return hx.head<2>() / hx(2);
+  return Vec3(P * X.homogeneous()).hnormalized();
 }
 
 void Project(const Mat34 &P, const Mat3X &X, Mat2X *x) {
@@ -172,8 +172,8 @@ void Project(const Mat34 &P, const Mat3X &X, Mat2X *x) {
 void Project(const Mat34 &P, const Mat4X &X, Mat2X *x) {
   x->resize(2, X.cols());
   for (Mat4X::Index c = 0; c < X.cols(); ++c) {
-    Vec3 hx = P * X.col(c);
-    x->col(c) = hx.head<2>() / hx(2);
+    const Vec3 hx = P * X.col(c);
+    x->col(c) = hx.hnormalized();
   }
 }
 
@@ -189,77 +189,17 @@ Mat2X Project(const Mat34 &P, const Mat4X &X) {
   return x;
 }
 
-void HomogeneousToEuclidean(const Vec4 &H, Vec3 *X) {
-  double w = H(3);
-  *X << H(0) / w, H(1) / w, H(2) / w;
-}
-
-void EuclideanToHomogeneous(const Mat &X, Mat *H) {
-  Mat::Index d = X.rows();
-  Mat::Index n = X.cols();
-  H->resize(d + 1, n);
-  H->block(0, 0, d, n) = X;
-  H->row(d).setOnes();
-}
-
 double Depth(const Mat3 &R, const Vec3 &t, const Vec3 &X) {
   return (R*X)[2] + t[2];
-}
-
-Vec3 EuclideanToHomogeneous(const Vec2 &x) {
-  return Vec3(x(0), x(1), 1.0);
-}
-
-void HomogeneousToEuclidean(const Mat &H, Mat *X) {
-  Mat::Index d = H.rows() - 1;
-  Mat::Index n = H.cols();
-  X->resize(d, n);
-  for (Mat::Index i = 0; i < n; ++i) {
-    double h = H(d, i);
-    for (int j = 0; j < d; ++j) {
-      (*X)(j, i) = H(j, i) / h;
-    }
-  }
-}
-
-Mat3X EuclideanToHomogeneous(const Mat2X &x) {
-  Mat3X h(3, x.cols());
-  h.block(0, 0, 2, x.cols()) = x;
-  h.row(2).setOnes();
-  return h;
-}
-
-void EuclideanToHomogeneous(const Mat2X &x, Mat3X *h) {
-  h->resize(3, x.cols());
-  h->block(0, 0, 2, x.cols()) = x;
-  h->row(2).setOnes();
-}
-
-void HomogeneousToEuclidean(const Mat3X &h, Mat2X *e) {
-  e->resize(2, h.cols());
-  e->row(0) = h.row(0).array() / h.row(2).array();
-  e->row(1) = h.row(1).array() / h.row(2).array();
-}
-
-void EuclideanToNormalizedCamera(const Mat2X &x, const Mat3 &K, Mat2X *n) {
-  Mat3X x_image_h;
-  EuclideanToHomogeneous(x, &x_image_h);
-  Mat3X x_camera_h = K.inverse() * x_image_h;
-  HomogeneousToEuclidean(x_camera_h, n);
-}
-
-void HomogeneousToNormalizedCamera(const Mat3X &x, const Mat3 &K, Mat2X *n) {
-  Mat3X x_camera_h = K.inverse() * x;
-  HomogeneousToEuclidean(x_camera_h, n);
 }
 
 /// Estimates the root mean square error (2D)
 double RootMeanSquareError(const Mat2X &x_image,
   const Mat4X &X_world,
   const Mat34 &P) {
-    size_t num_points = x_image.cols();
-    Mat2X dx = Project(P, X_world) - x_image;
-    return dx.norm() / num_points;
+    const Mat2X::Index num_points = x_image.cols();
+    const Mat2X dx = Project(P, X_world) - x_image;
+    return std::sqrt(dx.squaredNorm() / num_points);
 }
 
 /// Estimates the root mean square error (2D)
@@ -270,10 +210,7 @@ double RootMeanSquareError(const Mat2X &x_image,
   const Vec3 &t) {
     Mat34 P;
     P_From_KRt(K, R, t, &P);
-    size_t num_points = x_image.cols();
-    Mat2X dx = Project(P, X_world) - x_image;
-    return dx.norm() / num_points;
+    return RootMeanSquareError(x_image, X_world.colwise().homogeneous(), P);
 }
 
 } // namespace openMVG
-
